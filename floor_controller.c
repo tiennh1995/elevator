@@ -34,13 +34,13 @@ void listenMsg() {
   int msqid;
   msg rcvbuffer;
   while(1) {
-    msqid = msgget(MSG_KEY_S, PERMISSION);
-    if(msqid >= 0) {
-      if(msgrcv(msqid, &rcvbuffer, MSG_SIZE, 1, 0) >= 0) {
-        int floor = rcvbuffer.mtext[0] - '0';
-        insertRequest(floor);
-        excuteRequest();
-      }
+    if((msqid = msgget(MSG_KEY_S, PERMISSION)) < 0)
+      die("msgget()", "killall ./floor_controller");
+
+    if(msgrcv(msqid, &rcvbuffer, MSG_SIZE, 1, 0) >= 0) {
+      int floor = rcvbuffer.mtext[0] - '0';
+      insertRequest(floor);
+      excuteRequest();
     }
   }
 }
