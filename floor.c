@@ -45,12 +45,12 @@ void listenMsg(floor) {
   int msqid;
   msg rcvbuffer;
   while(1) {
-    msqid = msgget(floor, PERMISSION);
-    if(msqid >= 0) {
-      if(msgrcv(msqid, &rcvbuffer, MSG_SIZE, 1, 0) >= 0) {
-        current_floor = rcvbuffer.mtext[0] - '0';
-        menu_bar(floor);
-      }
+    if((msqid = msgget(floor, PERMISSION)) < 0)
+      die("msgget()", "killall ./floor");
+
+    if(msgrcv(msqid, &rcvbuffer, MSG_SIZE, 1, 0) >= 0) {
+      current_floor = rcvbuffer.mtext[0] - '0';
+      menu_bar(floor);
     }
   }
 }
