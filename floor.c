@@ -45,9 +45,7 @@ void listenMsg(floor) {
   int msqid;
   msg rcvbuffer;
   while(1) {
-    if((msqid = msgget(floor, PERMISSION)) < 0)
-      die("msgget()", "killall ./floor");
-
+    msqid = msgget(floor, PERMISSION);
     if(msgrcv(msqid, &rcvbuffer, MSG_SIZE, 1, 0) >= 0) {
       current_floor = rcvbuffer.mtext[0] - '0';
       menu_bar(floor);

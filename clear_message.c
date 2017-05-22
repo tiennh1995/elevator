@@ -13,13 +13,11 @@ int main() {
         key = MSG_KEYS[i];
       }
       while(1) {
-        if((msqid = msgget(key, PERMISSION)) < 0)
-          die("msgget()", "killall ./clear_message");
-
-        if(msgrcv(msqid, &rcvbuffer, MSG_SIZE, 1, 0) < 0)
-          die("msgrcv", "killall ./clear_message");
+        msqid = msgget(key, PERMISSION);
+        msgrcv(msqid, &rcvbuffer, MSG_SIZE, 1, 0);
       }
     }
   }
+  sleep(TIME_WAIT);
   system("pkill ./clear_message -f");
 }
