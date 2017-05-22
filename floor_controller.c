@@ -34,9 +34,7 @@ void listenMsg() {
   int msqid;
   msg rcvbuffer;
   while(1) {
-    if((msqid = msgget(MSG_KEY_S, PERMISSION)) < 0)
-      die("msgget()", "killall ./floor_controller");
-
+    msqid = msgget(MSG_KEY_S, PERMISSION);
     if(msgrcv(msqid, &rcvbuffer, MSG_SIZE, 1, 0) >= 0) {
       int floor = rcvbuffer.mtext[0] - '0';
       insertRequest(floor);
