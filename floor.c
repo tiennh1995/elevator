@@ -59,7 +59,7 @@ void listenMsg(int floor) {
 
 // Khi an ctrl + c thi tat het tien trinh lien quan toi floor
 void sigHandle(int sigNo) {
-  system("killall ./floor");
+  kill_all("kill all");
   return;
 }
 

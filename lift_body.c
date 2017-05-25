@@ -54,6 +54,6 @@ void excuteRequest(char *str) {
 
 // Khi an ctrl + c thi tat het tien trinh lien quan toi floor
 void sigHandle(int sigNo) {
-  system("killall ./lift_body");
+  kill_all("kill all");
   return;
 }
