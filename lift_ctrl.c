@@ -41,7 +41,7 @@ void listenMsg() {
 
 // Khi an ctrl + c thi tat het tien trinh lien quan toi floor
 void sigHandle(int sigNo) {
-  system("killall ./lift_ctrl");
+  kill_all("kill all");
   return;
 }
 
