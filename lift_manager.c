@@ -9,15 +9,14 @@ void changeRequest();
 void sendCurrentfloor();
 void menu();
 void menu_bar();
+void nextRequest();
 
 int requests[MAX_REQUEST];
 int requests_size = 0;
-msg sndbuffer;
 int current_floor = 1;
 
 int main(int argc, char const *argv[]) {
   int i;
-  sndbuffer.mtype = 1;
   for (i = 0; i < MAX_REQUEST; i++) {
     requests[i] = 0;
   }
@@ -25,27 +24,65 @@ int main(int argc, char const *argv[]) {
   signal(SIGINT, sigHandle);
   if(fork() == 0)
     listenMsg();
+
   menu();
   return 0;
 }
 
-// Lang nghe tin nhan de cap nhat vi tri cua thang may
+
 void listenMsg() {
-  int msqid;
+  int msqid, mscid;
   msg rcvbuffer;
   while(1) {
-    msqid = msgget(MSG_KEY_S, PERMISSION);
+    msqid = msgget(MSG_KEY_M, PERMISSION);
     if(msgrcv(msqid, &rcvbuffer, MSG_SIZE, 1, 0) >= 0) {
-      int floor = rcvbuffer.mtext[0] - '0';
-      insertRequest(floor);
-      excuteRequest();
+      char str[MSG_SIZE];
+      strcpy(str, rcvbuffer.mtext);
+
+      if(str[0] == 'f') {
+        int begin_floor = str[1] - '0';
+        int end_floor = str[2] - '0';
+        if(current_floor != 1)
+          insertRequest(begin_floor * 10 + end_floor);
+        else {
+          msg s;
+          s.mtype = 1;
+          s.mtext[0] = 'm';
+          s.mtext[1] = begin_floor + '0';
+          s.mtext[2] = end_floor + '0';
+          s.mtext[3] = '\0';
+          sendMessage(MSG_KEY_C, s);
+        }
+      } else if(str[0] == 'c') {
+        current_floor = str[1] - '0';
+        sendCurrentfloor();
+        if(current_floor == 1 && requests_size > 0) {
+          nextRequest();
+        }
+      } else {
+        system("killall ./lift_manager");
+      }
     }
   }
 }
 
+void nextRequest() {
+  int num = requests[0];
+  int begin_floor = num / 10;
+  int end_floor = num % 10;
+  msg s;
+  s.mtype = 1;
+  s.mtext[0] = 'm';
+  s.mtext[1] = begin_floor + '0';
+  s.mtext[2] = end_floor + '0';
+  s.mtext[3] = '\0';
+  sendMessage(MSG_KEY_C, s);
+  changeRequest();
+}
+
 // Khi an ctrl + c thi tat het tien trinh lien quan toi floor
 void sigHandle(int sigNo) {
-  system("killall ./floor_controller");
+  system("killall ./lift_manager");
   return;
 }
 
@@ -57,33 +94,6 @@ int insertRequest(int floor) {
     return 1;
   }
   return 0;
-}
-
-// Thuc hien yeu cau
-void excuteRequest() {
-  if(requests_size) {
-    int floor = requests[0];
-    excuteCtrl(floor);
-    changeRequest();
-  }
-}
-
-// Tinh toan thoi gian di chuyen
-void excuteCtrl(int floor) {
-  int distance, times;
-  if(floor != 1) {
-    while(current_floor !=  floor) {
-      sleep(TIME_WAIT);
-      current_floor++;
-      sendCurrentfloor();
-    }
-    sleep(TIME_WAIT);
-    while(current_floor != 1) {
-      sleep(TIME_WAIT);
-      current_floor--;
-      sendCurrentfloor();
-    }
-  }
 }
 
 //Giam hang doi xuong sau khi da xu li
@@ -98,7 +108,11 @@ void changeRequest() {
 
 // Gui cho cac tang vi tri thang may hien tai
 void sendCurrentfloor() {
-  sndbuffer.mtext[0] = current_floor + '0';
+  msg sndbuffer;
+  sndbuffer.mtype = 1;
+  sndbuffer.mtext[0] = 'm';
+  sndbuffer.mtext[1] = current_floor + '0';
+  sndbuffer.mtext[2] = '\0';
   sendAll(sndbuffer);
 }
 
@@ -113,7 +127,7 @@ void menu(int floor, int current_floor) {
       goto menu;
     }
   } while(choose);
-  system("killall ./floor_controller");
+  system("killall ./lift_manager");
 }
 
 void menu_bar() {
