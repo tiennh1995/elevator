@@ -9,9 +9,11 @@ int valid_choose(int floor, int choose);
 
 msg sndbuffer;
 int current_floor = 1;
+int my_floor;
 
 int main(int argc, char const *argv[]) {
   int floor = valid_argument(argc, argv);
+  my_floor = floor;
   sndbuffer.mtype = 1;
 
   signal(SIGINT, sigHandle);
@@ -41,14 +43,16 @@ int valid_argument(int argc, char const *argv[]) {
 }
 
 // Lang nghe tin nhan de cap nhat vi tri cua thang may
-void listenMsg(floor) {
+void listenMsg(int floor) {
   int msqid;
   msg rcvbuffer;
   while(1) {
     msqid = msgget(floor, PERMISSION);
     if(msgrcv(msqid, &rcvbuffer, MSG_SIZE, 1, 0) >= 0) {
-      current_floor = rcvbuffer.mtext[0] - '0';
-      menu_bar(floor);
+      if(rcvbuffer.mtext[0] == 'm') {
+        current_floor = rcvbuffer.mtext[1] - '0';
+        menu_bar(floor);
+      }
     }
   }
 }
@@ -71,14 +75,18 @@ void menu(int floor) {
     }
 
     if(choose){
-      sndbuffer.mtext[0] = choose + '0';
-      sendController(sndbuffer);
+      sndbuffer.mtext[0] = 'f';
+      sndbuffer.mtext[1] = my_floor + '0';
+      sndbuffer.mtext[2] = choose + '0';
+      sndbuffer.mtext[3] = '\0';
+      sendMessage(MSG_KEY_M, sndbuffer);
     }
   } while(choose);
   system("killall ./floor");
 }
 
 void menu_bar(int floor) {
+  system("clear");
   printf("\n\n----- Floor: %d -----\n", floor);
   printf("The elevator is at floor: %d\n", current_floor);
   if(floor == 1) {

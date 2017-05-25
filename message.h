@@ -7,8 +7,7 @@ typedef struct msgbuf {
 
 void die(char *s, char *excute);
 void sendAll(msg s);
-void sendFloor(int floor, msg s);
-void sendController(msg s);
+void sendMessage(int ms_key, msg s);
 void kill_all(char *s);
 
 void die(char *s, char *excute) {
@@ -27,27 +26,21 @@ void sendAll(msg s) {
   }
 }
 
-// Gui tin hieu cho 1 tang bat ki
-void sendFloor(int floor, msg s) {
+//Gui tin nhan toi hang doi co key la ms_key
+void sendMessage(int ms_key, msg s) {
   int msqid, s_size = strlen(s.mtext) + 1;
-  if((msqid = msgget(floor, IPC_CREAT | PERMISSION)) < 0)
+  if((msqid = msgget(ms_key, IPC_CREAT | PERMISSION)) < 0)
     kill_all("msgget()");
   if(msgsnd(msqid, &s, s_size, IPC_NOWAIT) < 0)
     kill_all("msgsnd");
-}
-
-// Tu floor gui toi floor_controller
-void sendController(msg s) {
-  int msqid, s_size = strlen(s.mtext) + 1;
-  if((msqid = msgget(MSG_KEY_S, IPC_CREAT | PERMISSION)) < 0)
-    kill_all("msgget()");
-  if(msgsnd(msqid, &s, s_size, IPC_NOWAIT) < 0)
-    kill_all("msgsnd()");
 }
 
 // Kill cac tien trinh chay khi gap loi
 void kill_all(char *s) {
   perror(s);
   system("killall ./floor");
-  system("killall ./floor_controller");
+  system("killall ./lift_body");
+  system("killall ./lift_manager");
+  system("killall ./lift_sensor");
+  system("killall ./lift_ctrl");
 }
