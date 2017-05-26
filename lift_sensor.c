@@ -17,6 +17,7 @@ void readShareMemory() {
   sndbuffer.mtype = 1;
   shmid = shmget(SHM_KEY, SHM_SIZE, IPC_CREAT | PERMISSION);
   shm = (float*) shmat(shmid, 0, 0);
+  printf("The floor is at %d\n", floor);
   while(1) {
     new_position = shm[0];
     if(new_position != current_position) {
@@ -26,6 +27,7 @@ void readShareMemory() {
       sndbuffer.mtext[1] = floor + '0';
       sndbuffer.mtext[2] = '\0';
       sendMessage(MSG_KEY_C, sndbuffer);
+      printf("The floor is at %d\n", floor);
       current_position = new_position;
     }
   }
@@ -33,6 +35,6 @@ void readShareMemory() {
 
 // Khi an ctrl + c thi tat het tien trinh lien quan toi floor
 void sigHandle(int sigNo) {
-  kill_all("kill all");
+  system("killall ./lift_sensor");
   return;
 }

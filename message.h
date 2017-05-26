@@ -38,9 +38,9 @@ void sendMessage(int ms_key, msg s) {
 // Kill cac tien trinh chay khi gap loi
 void kill_all(char *s) {
   perror(s);
-  system("killall ./floor");
   system("killall ./lift_body");
   system("killall ./lift_ctrl");
   system("killall ./lift_manager");
   system("killall ./lift_sensor");
+  system("killall ./floor");
 }
