@@ -82,7 +82,7 @@ void menu(int floor) {
       sendMessage(MSG_KEY_M, sndbuffer);
     }
   } while(choose);
-  system("killall ./floor");
+  kill_all("kill all");
 }
 
 void menu_bar(int floor) {
