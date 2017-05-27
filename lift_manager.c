@@ -46,10 +46,17 @@ void excuteRequest(char *str) {
     int end_floor = str[2] - '0';
     printf("Receive a request, from FLOOR %d to FLOOR %d\n", begin_floor,
       end_floor);
-    insertRequest(begin_floor * 10 + end_floor);
+    if(!insertRequest(begin_floor * 10 + end_floor)) {
+      int req_key = str[1] - '0';
+      msg s;
+      s.mtype = 1;
+      s.mtext[0] = 'r';
+      sendMessage(req_key, s);
+    }
   } else if(str[0] == 'c') {
     current_floor = str[1] - '0';
     sendCurrentfloor();
+
     if(current_floor == 1) {
       printf("Finish the request, from FLOOR %d to FLOOR %d\n",
         old_begin_floor, old_end_floor);
@@ -73,12 +80,13 @@ int insertRequest(int floor) {
       nextRequest();
     return 1;
   }
+
   return 0;
 }
 
 // Thuc hien request tiep theo
 void nextRequest() {
-  if(can_send){
+  if(can_send) {
     int num = requests[0];
     old_begin_floor = num / 10;
     old_end_floor = num % 10;

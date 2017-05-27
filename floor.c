@@ -1,19 +1,17 @@
 #include "message.h"
 
 int valid_argument(int argc, char const *argv[]);
-void listenMsg(int floor);
 void sigHandle(int sigNo);
+void listenMsg(int floor);
 void menu(int floor);
-void menu_bar(int floor);
+void menu_bar(int floor, int overload);
 int valid_choose(int floor, int choose);
 
 msg sndbuffer;
 int current_floor = 1;
-int my_floor;
 
 int main(int argc, char const *argv[]) {
   int floor = valid_argument(argc, argv);
-  my_floor = floor;
   sndbuffer.mtype = 1;
 
   signal(SIGINT, sigHandle);
@@ -42,6 +40,12 @@ int valid_argument(int argc, char const *argv[]) {
   return floor;
 }
 
+// Khi an ctrl + c thi tat het tien trinh lien quan toi floor
+void sigHandle(int sigNo) {
+  kill_all("kill all");
+  return;
+}
+
 // Lang nghe tin nhan de cap nhat vi tri cua thang may
 void listenMsg(int floor) {
   int msqid;
@@ -51,23 +55,19 @@ void listenMsg(int floor) {
     if(msgrcv(msqid, &rcvbuffer, MSG_SIZE, 1, 0) >= 0) {
       if(rcvbuffer.mtext[0] == 'm') {
         current_floor = rcvbuffer.mtext[1] - '0';
-        menu_bar(floor);
+        menu_bar(floor, 0);
+      } else if(rcvbuffer.mtext[0] == 'r') {
+        menu_bar(floor, 1);
       }
     }
   }
-}
-
-// Khi an ctrl + c thi tat het tien trinh lien quan toi floor
-void sigHandle(int sigNo) {
-  kill_all("kill all");
-  return;
 }
 
 // Menu de quan ly cac tang
 void menu(int floor) {
   int choose = 0;
   do {
-    menu: menu_bar(floor);
+    menu: menu_bar(floor, 0);
     scanf("%d", &choose);
     if(!valid_choose(floor, choose)) {
       printf("Your choose is not valid. Please choose again!\n");
@@ -76,7 +76,7 @@ void menu(int floor) {
 
     if(choose){
       sndbuffer.mtext[0] = 'f';
-      sndbuffer.mtext[1] = my_floor + '0';
+      sndbuffer.mtext[1] = floor + '0';
       sndbuffer.mtext[2] = choose + '0';
       sndbuffer.mtext[3] = '\0';
       sendMessage(MSG_KEY_M, sndbuffer);
@@ -85,9 +85,14 @@ void menu(int floor) {
   kill_all("kill all");
 }
 
-void menu_bar(int floor) {
+void menu_bar(int floor, int over_load) {
   system("clear");
-  printf("\n\n----- Floor: %d -----\n", floor);
+  if(over_load) {
+    printf("\n\nThe system is overload!\n");
+    printf("----- Floor: %d -----\n", floor);
+  } else
+    printf("\n\n----- Floor: %d -----\n", floor);
+
   printf("The elevator is at floor: %d\n", current_floor);
   if(floor == 1) {
     printf("2 - Call floor 2\n");
