@@ -1,8 +1,8 @@
 #include "message.h"
 
-void listenMsg();
 void sigHandle(int sigNo);
 void readShareMemory();
+int calFloor(float position);
 
 int main(int argc, char const *argv[]) {
   signal(SIGINT, sigHandle);
@@ -10,8 +10,14 @@ int main(int argc, char const *argv[]) {
   return 0;
 }
 
+// Khi an ctrl + c thi tat het tien trinh lien quan toi floor
+void sigHandle(int sigNo) {
+  system("killall ./lift_sensor");
+  return;
+}
+
 void readShareMemory() {
-  int msqid, shmid, floor = 1;
+  int shmid, floor = 1;
   float *shm, current_position = MIN_POSITION, new_position;
   msg sndbuffer;
   sndbuffer.mtype = 1;
@@ -21,8 +27,7 @@ void readShareMemory() {
   while(1) {
     new_position = shm[0];
     if(new_position != current_position) {
-      floor = (int) (new_position - MIN_POSITION) / HIGHT_FLOOR;
-      floor++;
+      floor = calFloor(new_position);
       sndbuffer.mtext[0] = 's';
       sndbuffer.mtext[1] = floor + '0';
       sndbuffer.mtext[2] = '\0';
@@ -33,8 +38,7 @@ void readShareMemory() {
   }
 }
 
-// Khi an ctrl + c thi tat het tien trinh lien quan toi floor
-void sigHandle(int sigNo) {
-  system("killall ./lift_sensor");
-  return;
+// Tinh toan tang cua thang may dua vao vi tri
+int calFloor(float position) {
+  return (int) (position - MIN_POSITION) / HIGHT_FLOOR + 1;
 }

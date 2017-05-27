@@ -2,7 +2,7 @@
 
 void listenMsg();
 void sigHandle(int sigNo);
-void excuteRequest();
+void excuteRequest(char *str);
 void calculate();
 int min(int a, int b);
 int max(int a, int b);
